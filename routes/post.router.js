@@ -17,6 +17,12 @@ postRouter.get('/:userId', getAllPostsByUserId);
 //delete post by id by author who is logged in
 postRouter.delete('/:postId', deletePost);
 
+//like a post
+postRouter.put('/like/:postId', likePost);
+
+
+
+
 // get all post liked by user id
 postRouter.get('/liked/:userId', getAllPostsByUserId);
 
@@ -28,10 +34,7 @@ postRouter.get('/:id', getPostById);
 
 
 
-//like a post
-postRouter.post('/like/:id', likePost);
-
 //comment on a post
-postRouter.post('/comment/:id', commentPost);
+postRouter.post('/comment/:postId', commentPost);
 
 export default postRouter;

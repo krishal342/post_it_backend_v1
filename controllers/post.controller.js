@@ -4,9 +4,9 @@ import { prisma } from '../lib/prisma.js';
 export const createPost = async (req, res, next) => {
     try {
         const { id } = req.user;
-        
-                // res.send('ok');
-                // console.log(id)
+
+        // res.send('ok');
+        // console.log(id)
 
         const { description, tags } = req.body;
 
@@ -31,10 +31,10 @@ export const createPost = async (req, res, next) => {
         const upLoadedUrl = result ? result.secure_url : null;
 
         const parsedTags = Array.isArray(tags) ? tags : JSON.parse(tags || '[]');
-        
+
 
         const post = await prisma.post.create({
-            data:{
+            data: {
                 description,
                 tags: parsedTags,
                 image: upLoadedUrl,
@@ -49,77 +49,96 @@ export const createPost = async (req, res, next) => {
     }
 }
 export const getAllPostsByUserId = async (req, res, next) => {
-    try{
-        
+    try {
+
         const userId = req.params.userId === "me" ? req.user.id : req.params.userId;
 
         const posts = await prisma.post.findMany({
-            where:{
+            where: {
                 authorId: userId
             },
-            orderBy:{
+            orderBy: {
                 createdAt: 'desc'
             },
-            include:{
+            include: {
                 author: {
                     select: {
                         id: true,
                         firstName: true,
                         lastName: true,
                         profilePicture: true,
-                        email:true
+                        email: true
                     }
                 }
             }
         });
         // console.log(posts);
         res.status(200).json(posts);
-    }catch(err){
+    } catch (err) {
         next(err);
     }
 }
 
 
 export const deletePost = async (req, res, next) => {
-    try{
+    try {
         const { postId } = req.params;
         const userId = req.user.id;
 
         const post = await prisma.post.findUnique({
-            where:{
+            where: {
                 id: postId
             },
-            select:{
+            select: {
                 authorId: true
             }
         });
-        if(!post){
+        if (!post) {
             return res.status(404).json({ message: 'Post not found' });
         }
-        if(post.authorId !== userId){
+        if (post.authorId !== userId) {
             return res.status(403).json({ message: 'You are not authorized to delete this post' });
         }
         await prisma.post.delete({
-            where:{
+            where: {
                 id: postId
             }
         });
-        res.status(200).json({ message: 'Post deleted successfully'
+        res.status(200).json({
+            message: 'Post deleted successfully'
         })
 
-    }catch(err){
+    } catch (err) {
         next(err);
     }
 
-    
+
 }
+
+export const likePost = async (req, res, next) => {
+    const { postId } = req.params;
+    const userId = req.user.id;
+
+    await prisma.$transaction([
+        prisma.like.create({
+            data: {
+                user: { connect: { id: userId } },
+                post: { connect: { id: postId } },
+            },
+        }),
+        prisma.post.update({
+            where: { id: postId },
+            data: { likesCount: { increment: 1 } },
+        }),
+    ]);
+}
+
+
 
 export const getPostById = async (req, res, next) => {
 
 }
-export const likePost = async (req, res, next) => {
 
-}
 export const commentPost = async (req, res, next) => {
 
 }
