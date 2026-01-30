@@ -1,48 +1,30 @@
-import cloudinary from "../utilis/cloudinary.js";
+import { uploadToCloudinary } from "../utilis/cloudinary.js";
 import { prisma } from '../lib/prisma.js';
 
 export const createPost = async (req, res, next) => {
     try {
-        const { id } = req.user;
-
-        // res.send('ok');
-        // console.log(id)
 
         const { description, tags } = req.body;
 
-
-        const result = await new Promise((resolve, reject) => {
-            if (req.file) {
-                cloudinary.uploader.upload_stream(
-                    { folder: 'post_images' },
-                    (error, result) => {
-                        if (error) {
-                            reject(error);
-                        } else {
-                            resolve(result);
-                        }
-                    }
-                ).end(req.file.buffer);
-            } else {
-                resolve(null);
-            }
-        });
+        const result = await uploadToCloudinary(req.file.path, 'post_images');
 
         const upLoadedUrl = result ? result.secure_url : null;
 
         const parsedTags = Array.isArray(tags) ? tags : JSON.parse(tags || '[]');
-
 
         const post = await prisma.post.create({
             data: {
                 description,
                 tags: parsedTags,
                 image: upLoadedUrl,
-                authorId: id
+                authorId: req.user.id
             }
         })
 
-        res.status(201).json({ message: 'Post created successfully' });
+        res.status(201).json({
+            success: true,
+            message: 'Post created successfully'
+        });
 
     } catch (err) {
         next(err);
@@ -51,10 +33,7 @@ export const createPost = async (req, res, next) => {
 export const getAllPostsByUserId = async (req, res, next) => {
     try {
 
-        // const token = req.cookies.loginToken;
-        // console.log(token);
-
-        const userId = req.params.userId === "me" ? req.user.id : req.params.userId;
+        const userId = req.params.userId;
 
         const posts = await prisma.post.findMany({
             where: {
@@ -78,10 +57,13 @@ export const getAllPostsByUserId = async (req, res, next) => {
                     }
                 },
                 comments: {
+                    orderBy: {
+                        createdAt: 'desc'
+                    },
                     include: {
                         user: {
                             select: {
-                                id:true,
+                                id: true,
                                 firstName: true,
                                 lastName: true,
                                 profilePicture: true,
@@ -186,59 +168,57 @@ export const likePost = async (req, res, next) => {
 export const getAllLikedPosts = async (req, res, next) => {
     try {
         const userId = req.user.id;
-        const posts = await prisma.post.findMany({
-            where: {
-                likes: {
-                    some: {
-                        userId: userId
-                    }
-                }
-            },
+
+        const likedPosts = await prisma.like.findMany({
+            where: { userId },
+            orderBy: { createdAt: "desc" }, // sort by when the like was created
             include: {
-                author: {
-                    select: {
-                        firstName: true,
-                        lastName: true,
-                        profilePicture: true,
-                        email: true
-                    }
-                },
-                comments: {
+                post: {
                     include: {
-                        user: {
+                        author: {
                             select: {
-                                id:true,
                                 firstName: true,
                                 lastName: true,
                                 profilePicture: true,
-                                email: true
-                            }
-                        }
-                    }
-                }
-            }
+                                email: true,
+                            },
+                        },
+                        comments: {
+                            orderBy: { createdAt: "desc" },
+                            include: {
+                                user: {
+                                    select: {
+                                        id: true,
+                                        firstName: true,
+                                        lastName: true,
+                                        profilePicture: true,
+                                        email: true,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
         });
 
-        const postWithLikedFlag = posts.map((post) => ({
-            ...post,
+        // Flatten: attach isLiked flag and return just posts
+        const postsWithLikedFlag = likedPosts.map((like) => ({
+            ...like.post,
             isLiked: true,
         }));
 
-        // console.log(posts);
-
-        res.status(200).json(postWithLikedFlag);
+        res.status(200).json(postsWithLikedFlag);
     } catch (err) {
         next(err);
     }
-}
+};
 
 export const commentPost = async (req, res, next) => {
     try {
-        // res.send('ok');
 
         const postId = req.params.postId;
         const { comment } = req.body;
-
 
         const createdComment = await prisma.comment.create({
             data: {
@@ -247,7 +227,7 @@ export const commentPost = async (req, res, next) => {
                     connect: {
                         id: postId
                     }
-                    
+
                 },
                 user: {
                     connect: {
@@ -256,7 +236,7 @@ export const commentPost = async (req, res, next) => {
                 }
             }
         })
-        
+
         const commentWithUserDetial = await prisma.comment.findUnique({
             where: {
                 id: createdComment.id
@@ -264,7 +244,7 @@ export const commentPost = async (req, res, next) => {
             include: {
                 user: {
                     select: {
-                        id:true,
+                        id: true,
                         firstName: true,
                         lastName: true,
                         profilePicture: true,
@@ -273,8 +253,6 @@ export const commentPost = async (req, res, next) => {
                 }
             }
         })
-
-        // console.log(commentWithUserDetial);
 
         res.status(201).json(commentWithUserDetial);
     } catch (err) {
@@ -283,50 +261,61 @@ export const commentPost = async (req, res, next) => {
 }
 
 export const getAllCommentedPosts = async (req, res, next) => {
-    try{
+    try {
         const userId = req.user.id;
 
-        const posts = await prisma.post.findMany({
+        const commentedPosts = await prisma.comment.findMany({
             where:{
-                comments: {
-                    some: {
-                        userId: userId,
-                    }
-                }
+                userId
+            },
+            orderBy:{
+                createdAt: 'desc'
             },
             include:{
-                author:{
-                    select:{
-                        firstName: true,
-                        lastName: true,
-                        profilePicture: true,
-                        email: true
-                    }
-                },
-                comments: {
-                    include: {
-                        user: {
+                post:{
+                    include:{
+                        author: {
                             select: {
-                                id:true,
                                 firstName: true,
                                 lastName: true,
                                 profilePicture: true,
                                 email: true
                             }
+                        },
+                        likes:{
+                            where:{
+                                userId
+                            }
+                        },
+                        comments:{
+                            orderBy: {
+                                createdAt: 'desc'
+                            },
+                            include: {
+                                user:{
+                                    select:{
+                                        id: true,
+                                        firstName: true,
+                                        lastName: true,
+                                        profilePicture: true,
+                                        email: true
+                                    }
+                                }
+                            }
                         }
                     }
                 }
             }
-        })
+        });
 
-        res.status(200).json(posts);
-    }catch(err){
+        // Flatten: attach isLiked flag and return just posts
+        const postsWithLikedFlag = commentedPosts.map((comment) => ({
+            ...comment.post,
+            isLiked: comment.post.likes.length > 0,
+        }));
+
+        res.status(200).json(postsWithLikedFlag);
+    } catch (err) {
         next(err);
     }
 }
-
-
-export const getPostById = async (req, res, next) => {
-
-}
-

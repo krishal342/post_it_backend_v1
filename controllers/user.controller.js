@@ -1,5 +1,5 @@
 import { prisma } from '../lib/prisma.js';
-import cloudinary from '../utilis/cloudinary.js';
+// import cloudinary from '../utilis/cloudinary.js';
 import bcrypt from 'bcrypt';
 
 
@@ -39,20 +39,20 @@ export const updateProfile = async (req, res, next) => {
         const { firstName, lastName, email } = req.body;
 
         const result = await new Promise((resolve, reject) => {
-            if (req.file) {
-                cloudinary.uploader.upload_stream(
-                    { folder: 'profile_pictures' },
-                    (error, result) => {
-                        if (error) {
-                            reject(error);
-                        } else {
-                            resolve(result);
-                        }
-                    }
-                ).end(req.file.buffer);
-            } else {
-                resolve(null);
-            }
+            // if (req.file) {
+            //     cloudinary.uploader.upload_stream(
+            //         { folder: 'profile_pictures' },
+            //         (error, result) => {
+            //             if (error) {
+            //                 reject(error);
+            //             } else {
+            //                 resolve(result);
+            //             }
+            //         }
+            //     ).end(req.file.buffer);
+            // } else {
+            //     resolve(null);
+            // }
         });
 
         const upLoadedUrl = result ? result.secure_url : null;

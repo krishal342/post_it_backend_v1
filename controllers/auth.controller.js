@@ -75,6 +75,7 @@ export const login = async (req, res, next) => {
             sameSite: 'none'
         }).status(200).json({
             success: true,
+            user: user,
             message: "User logged in successfully"
         });
 
