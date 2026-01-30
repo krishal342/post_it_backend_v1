@@ -3,55 +3,64 @@ import { prisma } from '../lib/prisma.js';
 
 import generateToken from '../utilis/tokenGeneration.js';
 
-export const signup = async(req, res,next) => {
-    try{
-        const { firstName, lastName, email, password} = req.body;
-
+export const signup = async (req, res, next) => {
+    try {
+        const { firstName, lastName, email, password } = req.body;
         const existingUser = await prisma.user.findUnique({
             where: {
                 email: email.toLowerCase()
             }
         })
-        if(existingUser){
-            return res.status(400).json({error : "User already exist."});
+
+        if (existingUser) {
+            return res.status(400).json({ 
+                success: false,
+                message: "User already exist." 
+            });
         }
 
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-
         await prisma.user.create({
-            data:{
+            data: {
                 firstName,
                 lastName,
-                email,
+                email: email.toLowerCase(),
                 password: hashedPassword
             }
         });
 
         return res.status(201).json({
             success: true,
-            message: "User created successfully", 
+            message: "User created successfully",
         });
 
 
-    }catch(err){
+    } catch (err) {
         next(err);
     }
 }
 
-export const login = async(req, res,next) => {
+export const login = async (req, res, next) => {
 
-    try{
-        const {email, password} = req.body;
+    try {
+        const { email, password } = req.body;
 
         const user = await prisma.user.findUnique({
-            where:{email: email.toLowerCase()}
+            where: { email: email.toLowerCase() }
         });
+
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: "Invalid email or password"
+            });
+        }
 
         const verifyPassword = await bcrypt.compare(password, user.password);
 
-        if( !user || !verifyPassword ){
+        if (!verifyPassword) {
             return res.status(401).json({
                 success: false,
                 message: "Invalid email or password"
@@ -60,9 +69,9 @@ export const login = async(req, res,next) => {
 
         const token = generateToken(user);
 
-        return res.cookie('loginToken',token,{
+        return res.cookie('loginToken', token, {
             httpOnly: true,
-            secure:true,
+            secure: true,
             sameSite: 'none'
         }).status(200).json({
             success: true,
@@ -70,18 +79,18 @@ export const login = async(req, res,next) => {
         });
 
 
-    }catch(err){
+    } catch (err) {
         next(err);
     }
 }
 
-export const logout = async(req, res,next) => {
-    try{
+export const logout = async (req, res, next) => {
+    try {
         return res.clearCookie("loginToken").status(200).json({
             success: true,
             message: "User logged out successfully"
         });
-    }catch(err){
+    } catch (err) {
         next(err);
     }
 

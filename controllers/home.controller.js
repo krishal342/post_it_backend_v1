@@ -8,19 +8,15 @@ export const getPosts = async (req, res, next) => {
 
         let  userId = "";
 
-        const token = req.cookies.loginToken;
+        const token = req.cookies.loginToken;  
 
-
+        // token is 'undefined' if there is no loginToken cookie and that reqest is send from frontend without authentication
         if (token != 'undefined') {
             const decoded = jwt.verify(token, JWT_SECRET);
             req.user = decoded;
     
             userId = req.user.id;
         }
-
-
-
-
 
         const posts = await prisma.post.findMany({
             orderBy: {
@@ -36,15 +32,17 @@ export const getPosts = async (req, res, next) => {
                     }
                 },
                 likes: {
+                    // get likes array if logged in user has liked the post which will allow us to set isLiked flag
                     where: {
-                        userId: userId
+                        userId: req.user.id
                     }
                 },
                 comments: {
                     orderBy: {
-                        createdAt: 'asc'
+                        createdAt: 'desc'
                     },
                     include:{
+                        // get user details of comment author
                         user: {
                             select: {
                                 id: true,
@@ -59,6 +57,7 @@ export const getPosts = async (req, res, next) => {
             }
         });
 
+        // set isLiked flag based on whether likes array has any entry for logged in user or not which will help frontend to easily identify if the post is liked by logged in user
         const postWithLikedFlag = posts.map((post) => {
             return {
                 ...post,
@@ -68,7 +67,6 @@ export const getPosts = async (req, res, next) => {
 
         return res.status(200).json(postWithLikedFlag);
 
-        // id, image, description, tags, authorId, createdAt, updatedAt, likesCount
     } catch (err) {
         next(err);
     }
