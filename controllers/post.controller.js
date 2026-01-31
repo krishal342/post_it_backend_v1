@@ -6,7 +6,7 @@ export const createPost = async (req, res, next) => {
 
         const { description, tags } = req.body;
 
-        const result = await uploadToCloudinary(req.file.path, 'post_images');
+        const result = req.file ? await uploadToCloudinary(req.file.path, 'post_images') : null;
 
         const upLoadedUrl = result ? result.secure_url : null;
 

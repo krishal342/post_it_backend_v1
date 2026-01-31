@@ -1,13 +1,11 @@
 import { prisma } from '../lib/prisma.js';
-// import cloudinary from '../utilis/cloudinary.js';
+import { uploadToCloudinary } from '../utilis/cloudinary.js';
 import bcrypt from 'bcrypt';
 
 
 export const getProfile = async (req, res, next) => {
     try {
-        const userId = req.params.userId === "me" ? req.user.id : req.params.userId;
-
-        // console.log(userId);
+        const userId =  req.params.userId;
 
         const user = await prisma.user.findUnique({
             where: { id: userId },
@@ -19,7 +17,6 @@ export const getProfile = async (req, res, next) => {
                 profilePicture: true
             }
         })
-
 
         if (!user) {
             return res.status(404).json({
@@ -37,23 +34,8 @@ export const updateProfile = async (req, res, next) => {
     try {
         const id = req.user.id;
         const { firstName, lastName, email } = req.body;
-
-        const result = await new Promise((resolve, reject) => {
-            // if (req.file) {
-            //     cloudinary.uploader.upload_stream(
-            //         { folder: 'profile_pictures' },
-            //         (error, result) => {
-            //             if (error) {
-            //                 reject(error);
-            //             } else {
-            //                 resolve(result);
-            //             }
-            //         }
-            //     ).end(req.file.buffer);
-            // } else {
-            //     resolve(null);
-            // }
-        });
+        
+        const result = req.file ? await uploadToCloudinary(req.file.path, 'profile_pictures') : null;
 
         const upLoadedUrl = result ? result.secure_url : null;
 
@@ -64,12 +46,12 @@ export const updateProfile = async (req, res, next) => {
             ...(upLoadedUrl && { profilePicture: upLoadedUrl })
         }
 
-        await prisma.user.update({
+        const user = await prisma.user.update({
             where: { id: id },
             data: updatedData
         })
 
-        return res.status(200).json({ success: true, message: "Profile updated successfully" });
+        return res.status(200).json(user);
 
     } catch (err) {
         next(err);
