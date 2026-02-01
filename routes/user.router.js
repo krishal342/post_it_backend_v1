@@ -9,9 +9,6 @@ const userRouter = express.Router();
 // get user profile by id
 userRouter.get('/:userId', getProfile);
 
-// get user profile of logged in user
-userRouter.get('/me', getProfile);
-
 //update profile of logged in user
 userRouter.put('/updateProfile', upload.single('profilePicture'), updateProfile);
 

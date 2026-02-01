@@ -31,6 +31,26 @@
 - CLOUDINARY_API_KEY
 - CLOUDINARY_API_SECRET
 
-# links
+# Routes
+// auth routes  
+- /auth/signup -> POST request take( firstname, lastname, email, password)
+- /auth/login -> POST request take(email, password)
+- /auth/logout -> GET request
 
-link of frontend code - https://github.com/krishal342/post_it_frontend
+// home route  
+- /home/ -> GET request to get posts
+
+// post routes  
+- /posts/create -> POST request to create post
+- /posts/:userId -> GET request to get all post by userId
+- /posts/:postId -> DELETE request to delete post
+- /posts/like/:postId -> PUT request to like a post
+- /posts/liked/me -> GET request to get all post liked by logged in user
+- /posts/comment/:postId -> POST request to crete a comment
+- /posts/commented/me -> GET request to get all post commented by logged in user
+- /posts/comment/:commentId -> DELETE request to delete a comment
+
+//user routes  
+- /users/:userId -> GET request to get profile by userId
+- /users/updateProfile -> PUT request to update profile
+- /users/deleteProfile -> DELETE request to delete profile
