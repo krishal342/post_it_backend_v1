@@ -16,6 +16,6 @@ userRouter.get('/me', getProfile);
 userRouter.put('/updateProfile', upload.single('profilePicture'), updateProfile);
 
 // delete profile of logged in user
-userRouter.post('/deleteProfile', deleteProfile);
+userRouter.delete('/deleteProfile', deleteProfile);
 
 export default userRouter;

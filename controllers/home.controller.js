@@ -34,7 +34,8 @@ export const getPosts = async (req, res, next) => {
                 likes: {
                     // get likes array if logged in user has liked the post which will allow us to set isLiked flag
                     where: {
-                        userId: req.user.id
+                        // here userId: req.user.id won't work as req.user will be undefined for unauthenticated requests
+                        userId: userId
                     }
                 },
                 comments: {

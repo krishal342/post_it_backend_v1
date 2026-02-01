@@ -264,43 +264,34 @@ export const getAllCommentedPosts = async (req, res, next) => {
     try {
         const userId = req.user.id;
 
-        const commentedPosts = await prisma.comment.findMany({
-            where:{
-                userId
+        const posts = await prisma.post.findMany({
+            where: {
+                comments: {
+                    some: { userId } // only posts where this user has at least one comment
+                }
             },
-            orderBy:{
-                createdAt: 'desc'
-            },
-            include:{
-                post:{
-                    include:{
-                        author: {
+            include: {
+                author: {
+                    select: {
+                        firstName: true,
+                        lastName: true,
+                        profilePicture: true,
+                        email: true
+                    }
+                },
+                likes: {
+                    where: { userId }
+                },
+                comments: {
+                    orderBy: { createdAt: 'desc' },
+                    include: {
+                        user: {
                             select: {
+                                id: true,
                                 firstName: true,
                                 lastName: true,
                                 profilePicture: true,
                                 email: true
-                            }
-                        },
-                        likes:{
-                            where:{
-                                userId
-                            }
-                        },
-                        comments:{
-                            orderBy: {
-                                createdAt: 'desc'
-                            },
-                            include: {
-                                user:{
-                                    select:{
-                                        id: true,
-                                        firstName: true,
-                                        lastName: true,
-                                        profilePicture: true,
-                                        email: true
-                                    }
-                                }
                             }
                         }
                     }
@@ -308,14 +299,64 @@ export const getAllCommentedPosts = async (req, res, next) => {
             }
         });
 
-        // Flatten: attach isLiked flag and return just posts
-        const postsWithLikedFlag = commentedPosts.map((comment) => ({
-            ...comment.post,
-            isLiked: comment.post.likes.length > 0,
+        // Sort posts by latest comment date 
+        const sortedPosts = posts.sort((a, b) => {
+            const latestA = a.comments.length
+                ? new Date(a.comments[0].createdAt).getTime()
+                : new Date(a.createdAt).getTime();
+
+            const latestB = b.comments.length
+                ? new Date(b.comments[0].createdAt).getTime()
+                : new Date(b.createdAt).getTime();
+
+            return latestB - latestA; // newest first
+        });
+
+        // Attach isLiked flag
+        const postsWithLikedFlag = sortedPosts.map((post) => ({
+            ...post,
+            isLiked: post.likes.length > 0
         }));
 
+
         res.status(200).json(postsWithLikedFlag);
+
     } catch (err) {
+        next(err);
+    }
+}
+
+export const deleteComment = async (req, res, next) =>{
+    try{
+        const { commentId } = req.params;
+        const userId = req.user.id;
+
+        const comment = await prisma.comment.findUnique({
+            where:{
+                id: commentId
+            },
+            select:{
+                userId: true
+            }
+        });
+
+        if(!comment){
+            return res.status(404).json({ message: 'Comment not found' });
+        }
+        if(comment.userId !== userId){
+            return res.status(403).json({ message: 'You are not authorized to delete this comment' });
+        }
+
+        await prisma.comment.delete({
+            where:{
+                id: commentId
+            }
+        })
+
+        res.status(200).json({
+            message: 'Comment deleted successfully'
+        });
+    }catch(err){
         next(err);
     }
 }

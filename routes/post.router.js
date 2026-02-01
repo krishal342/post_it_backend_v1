@@ -2,8 +2,7 @@ import express from 'express';
 
 import upload from '../config/multer.config.js';
 
-import { createPost, getAllPostsByUserId, deletePost, likePost, commentPost, getAllLikedPosts,getAllCommentedPosts } from '../controllers/post.controller.js';
-import { get } from 'http';
+import { createPost, getAllPostsByUserId, deletePost, likePost, commentPost, getAllLikedPosts,getAllCommentedPosts, deleteComment } from '../controllers/post.controller.js';
 
 const postRouter = express.Router();
 
@@ -27,10 +26,11 @@ postRouter.get('/liked/me', getAllLikedPosts);
 //comment on a post
 postRouter.post('/comment/:postId', commentPost);
 
-// get all post commented by user id
+// get all post commented by user logged in user
 postRouter.get('/commented/me', getAllCommentedPosts);
 
-
+// delete comment on a post
+postRouter.delete('/comment/:commentId', deleteComment)
 
 
 

@@ -72,7 +72,7 @@ export const deleteProfile = async (req, res, next) => {
         const isMatch = await bcrypt.compare(password, user.password);
 
         if (!isMatch) {
-            return res.status(400).json({ error: "Incorrect password" });
+            return res.status(400).json({success:false, message: "Incorrect password" });
         }
 
         await prisma.user.delete({

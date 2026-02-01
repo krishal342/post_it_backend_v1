@@ -39,7 +39,7 @@ model Post {
   createdAt DateTime @default(now())
 
   //Relation
-  author User @relation(fields:[authorId], references:[id])
+  author User @relation(fields:[authorId], references:[id], onDelete:Cascade)
   authorId String
   comments Comment[]
   likes Like[]
@@ -51,9 +51,9 @@ model Comment{
   createdAt DateTime @default(now())
 
   //Relation
-  user User @relation(fields:[userId], references:[id])
+  user User @relation(fields:[userId], references:[id], onDelete:Cascade)
   userId String
-  post Post @relation(fields:[postId], references:[id])
+  post Post @relation(fields:[postId], references:[id], onDelete:Cascade)
   postId String
 }
 
@@ -62,9 +62,9 @@ model Like{
   createdAt DateTime @default(now())
 
   //Relation
-  user User @relation(fields:[userId], references:[id])
+  user User @relation(fields:[userId], references:[id], onDelete:Cascade)
   userId String
-  post Post @relation(fields:[postId], references:[id])
+  post Post @relation(fields:[postId], references:[id], onDelete:Cascade)
   postId String
   
 }
