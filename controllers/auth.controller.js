@@ -1,6 +1,8 @@
 import bcrypt from 'bcrypt';
 import { prisma } from '../lib/prisma.js';
 
+import { NODE_ENV } from '../config/config.js';
+
 import generateToken from '../utilis/tokenGeneration.js';
 
 export const signup = async (req, res, next) => {
@@ -72,7 +74,8 @@ export const login = async (req, res, next) => {
         return res.cookie('loginToken', token, {
             httpOnly: true,
             secure: true,
-            sameSite: 'none'
+            sameSite: NODE_ENV === ' production' ? 'none' : 'lax',
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
         }).status(200).json({
             success: true,
             user: user,
@@ -87,7 +90,11 @@ export const login = async (req, res, next) => {
 
 export const logout = async (req, res, next) => {
     try {
-        return res.clearCookie("loginToken").status(200).json({
+        return res.clearCookie("loginToken",{
+            httpOnly: true,
+            secure: true,
+            sameSite: NODE_ENV === ' production' ? 'none' : 'lax',
+        }).status(200).json({
             success: true,
             message: "User logged out successfully"
         });
