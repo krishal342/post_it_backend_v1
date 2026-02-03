@@ -19,13 +19,14 @@ import homeRouter from './routes/home.router.js';
 
 const app = express();
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
+app.set('trust proxy', 1); // trust first proxy
 app.use(cors({
     origin: FRONTEND_URL,
     credentials: true
 }));
+app.use(cookieParser());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 
 // API routes
