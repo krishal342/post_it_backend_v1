@@ -74,8 +74,8 @@ export const login = async (req, res, next) => {
         return res.cookie('loginToken', token, {
             httpOnly: true,
             secure: true,
-            sameSite: NODE_ENV === ' production' ? 'none' : 'lax',
-            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+            sameSite: NODE_ENV === 'production' ? 'none' : 'lax',
+            maxAge: 3 * 24 * 60 * 60 * 1000 
         }).status(200).json({
             success: true,
             user: user,
@@ -93,7 +93,7 @@ export const logout = async (req, res, next) => {
         return res.clearCookie("loginToken",{
             httpOnly: true,
             secure: true,
-            sameSite: NODE_ENV === ' production' ? 'none' : 'lax',
+            sameSite: NODE_ENV === 'production' ? 'none' : 'lax',
         }).status(200).json({
             success: true,
             message: "User logged out successfully"
