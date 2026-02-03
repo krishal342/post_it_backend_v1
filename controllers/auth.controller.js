@@ -75,6 +75,7 @@ export const login = async (req, res, next) => {
             httpOnly: true,
             secure: true,
             sameSite: NODE_ENV === 'production' ? 'none' : 'lax',
+            path:'/',
             maxAge: 3 * 24 * 60 * 60 * 1000 
         });
         console.log("Login token set in cookie");
