@@ -78,11 +78,12 @@ export const login = async (req, res, next) => {
             maxAge: 3 * 24 * 60 * 60 * 1000 
         });
         console.log("Login token set in cookie");
-        return res.status(200).json({
+         res.status(200).json({
             success: true,
             user: user,
             message: "User logged in successfully"
         });
+        console.log("Login response sent");
 
 
     } catch (err) {
