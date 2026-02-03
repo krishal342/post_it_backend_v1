@@ -71,12 +71,14 @@ export const login = async (req, res, next) => {
 
         const token = generateToken(user);
 
-        return res.cookie('loginToken', token, {
+        res.cookie('loginToken', token, {
             httpOnly: true,
             secure: true,
             sameSite: NODE_ENV === 'production' ? 'none' : 'lax',
             maxAge: 3 * 24 * 60 * 60 * 1000 
-        }).status(200).json({
+        });
+        console.log("Login token set in cookie");
+        return res.status(200).json({
             success: true,
             user: user,
             message: "User logged in successfully"
