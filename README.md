@@ -1,3 +1,9 @@
+# Link
+- backend API -> https://post-it-24f5.onrender.com
+- frontend Link -> https://post-it-murex-phi.vercel.app
+- frontend code -> https://github.com/krishal342/post_it_frontend_v1
+
+
 # Backend project using node.js
 - express
 - postgreSQL DataBase
