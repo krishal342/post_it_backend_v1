@@ -45,7 +45,8 @@ export const signup = async (req, res, next) => {
 }
 
 export const login = async (req, res, next) => {
-
+    console.log("Request Origin:", req.headers.origin);  // Check if it matches FRONTEND_URL
+    console.log("Request Method:", req.method);
     try {
         const { email, password } = req.body;
 

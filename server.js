@@ -20,9 +20,16 @@ import homeRouter from './routes/home.router.js';
 const app = express();
 
 app.set('trust proxy', 1); // trust first proxy
+// app.use(cors({
+//     origin: FRONTEND_URL,
+//     credentials: true
+// }));
 app.use(cors({
-    origin: FRONTEND_URL,
-    credentials: true
+    origin: FRONTEND_URL,  // Must be exact match
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],  // Include OPTIONS for preflight
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],  // Common headers
+    optionsSuccessStatus: 200  // For legacy browser support
 }));
 app.use(cookieParser());
 app.use(express.json());
