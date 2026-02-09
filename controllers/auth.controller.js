@@ -4,6 +4,7 @@ import { prisma } from '../lib/prisma.js';
 import { NODE_ENV } from '../config/config.js';
 
 import generateToken from '../utilis/tokenGeneration.js';
+import path from 'node:path';
 
 export const signup = async (req, res, next) => {
     try {
@@ -99,6 +100,7 @@ export const logout = async (req, res, next) => {
             httpOnly: true,
             secure: true,
             sameSite: NODE_ENV === 'production' ? 'none' : 'lax',
+            path:'/',
         }).status(200).json({
             success: true,
             message: "User logged out successfully"
