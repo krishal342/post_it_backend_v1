@@ -20,6 +20,8 @@ export const getPosts = async (req, res, next) => {
             userId = req.user.id;
         }
 
+        console.log("User ID in /home route:", userId);  // Debug log to check userId extracted from token
+
         const posts = await prisma.post.findMany({
             orderBy: {
                 createdAt: 'desc'
@@ -67,6 +69,8 @@ export const getPosts = async (req, res, next) => {
                 isLiked: post.likes.length > 0
             }
         })
+
+        console.log(postWithLikedFlag);  // Debug log to check the final posts data being sent in response
 
         return res.status(200).json(postWithLikedFlag);
 
