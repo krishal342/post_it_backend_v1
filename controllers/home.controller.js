@@ -10,17 +10,15 @@ export const getPosts = async (req, res, next) => {
 
         const token = req.cookies.loginToken;  
 
-        console.log("Received token in /home route:", token);  // Debug log to check if token is received
 
         // token is 'undefined' if there is no loginToken cookie and that reqest is send from frontend without authentication
-        if (token != "undefined" && token != undefined) {
+        if (token != undefined) {
             const decoded = jwt.verify(token, JWT_SECRET);
             req.user = decoded;
     
             userId = req.user.id;
         }
 
-        console.log("User ID in /home route:", userId);  // Debug log to check userId extracted from token
 
         const posts = await prisma.post.findMany({
             orderBy: {
@@ -70,7 +68,6 @@ export const getPosts = async (req, res, next) => {
             }
         })
 
-        console.log(postWithLikedFlag);  // Debug log to check the final posts data being sent in response
 
         return res.status(200).json(postWithLikedFlag);
 
