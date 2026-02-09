@@ -11,7 +11,7 @@ export const getPosts = async (req, res, next) => {
         const token = req.cookies.loginToken;  
 
         // token is 'undefined' if there is no loginToken cookie and that reqest is send from frontend without authentication
-        if (token != 'undefined') {
+        if (token != undefined) {
             const decoded = jwt.verify(token, JWT_SECRET);
             req.user = decoded;
     
